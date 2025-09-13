@@ -36,8 +36,8 @@ export async function signUp(
     const existingUser = await esClient.search({
       index: 'users',
       query: {
-        match: {
-          email: validation.data.email
+        term: {
+          'email.keyword': validation.data.email
         }
       }
     });

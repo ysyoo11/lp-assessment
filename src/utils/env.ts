@@ -1,3 +1,4 @@
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const ENV_KEYS = [
   'BCRYPT_SALT_ROUNDS',
   'REDIS_URL',

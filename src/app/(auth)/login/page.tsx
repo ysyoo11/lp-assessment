@@ -13,7 +13,7 @@ export default function LoginPage() {
       <h1 className='text-2xl font-bold'>Log In</h1>
       <LoginForm />
       <p className='text-center text-sm text-gray-500'>
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link href='/signup' className='text-primary'>
           Sign up
         </Link>

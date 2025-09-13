@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { LoginState } from '@/components/auth/LoginForm';
 import { getUserByEmail } from '@/data/user';
 import { comparePasswords } from '@/utils/auth';
+import { getCurrentUser } from '@/utils/current-user';
 import { createUserSession } from '@/utils/session';
 import { validateLogin } from '@/validation/login';
 
@@ -30,6 +31,17 @@ export async function logIn(
   // TODO: Google ReCAPTCHA
 
   try {
+    const currentUser = await getCurrentUser();
+    if (currentUser) {
+      return {
+        data,
+        error: {
+          formErrors: ['You are already logged in'],
+          fieldErrors: {}
+        }
+      };
+    }
+
     const existingUser = await getUserByEmail(validation.data.email);
 
     if (!existingUser) {

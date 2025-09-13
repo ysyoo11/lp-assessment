@@ -5,3 +5,5 @@ export type User = {
   password: string;
   createdAt: string;
 };
+
+export type NewUser = Omit<User, 'createdAt'>;

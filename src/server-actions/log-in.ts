@@ -3,8 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { LoginState } from '@/components/auth/LoginForm';
-import { esClient } from '@/lib/elastic';
-import { User } from '@/types/user';
+import { getUserByEmail } from '@/data/user';
 import { comparePasswords } from '@/utils/auth';
 import { createUserSession } from '@/utils/session';
 import { validateLogin } from '@/validation/login';
@@ -31,16 +30,9 @@ export async function logIn(
   // TODO: Google ReCAPTCHA
 
   try {
-    const existingUser = await esClient.search({
-      index: 'users',
-      query: {
-        term: {
-          'email.keyword': validation.data.email
-        }
-      }
-    });
+    const existingUser = await getUserByEmail(validation.data.email);
 
-    if (existingUser.hits.hits.length === 0) {
+    if (!existingUser) {
       return {
         data,
         error: {
@@ -50,12 +42,9 @@ export async function logIn(
       };
     }
 
-    const user = existingUser.hits.hits[0]._source as User;
-
-    console.log('user', user);
     const isPasswordValid = await comparePasswords(
       validation.data.password,
-      user.password
+      existingUser.password
     );
     if (!isPasswordValid) {
       return {
@@ -67,7 +56,7 @@ export async function logIn(
       };
     }
 
-    await createUserSession({ id: user.id, name: user.name });
+    await createUserSession({ id: existingUser.id, name: existingUser.name });
   } catch (error) {
     console.error(error);
     return {

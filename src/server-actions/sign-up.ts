@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { redirect } from 'next/navigation';
 
 import { SignupState } from '@/components/auth/SignupForm';
-import { esClient } from '@/lib/elastic';
+import { createUser, getUserByEmail } from '@/data/user';
 import { hashPassword } from '@/utils/auth';
 import { createUserSession } from '@/utils/session';
 import { validateSignup } from '@/validation/signup';
@@ -33,16 +33,9 @@ export async function signUp(
   // TODO: Google ReCAPTCHA
 
   try {
-    const existingUser = await esClient.search({
-      index: 'users',
-      query: {
-        term: {
-          'email.keyword': validation.data.email
-        }
-      }
-    });
+    const existingUser = await getUserByEmail(validation.data.email);
 
-    if (existingUser.hits.hits.length > 0) {
+    if (existingUser) {
       return {
         data,
         error: {
@@ -56,16 +49,11 @@ export async function signUp(
 
     const userId = crypto.randomUUID();
 
-    await esClient.index({
-      index: 'users',
+    await createUser({
       id: userId,
-      document: {
-        id: userId,
-        name: validation.data.name,
-        email: validation.data.email,
-        password: hashedPassword,
-        createdAt: new Date().toISOString()
-      }
+      name: validation.data.name,
+      email: validation.data.email,
+      password: hashedPassword
     });
 
     await createUserSession({ id: userId, name: validation.data.name });

@@ -16,6 +16,10 @@ export const ENV = {
   ELASTICSEARCH_API_KEY: required('ELASTICSEARCH_API_KEY')
 };
 
+export const isProduction = process.env.NODE_ENV === 'production';
+export const isDev = process.env.NODE_ENV === 'development';
+export const isTest = process.env.NODE_ENV === 'test';
+
 function required(key: EnvKey, defaultValue?: string) {
   const value = process.env[key] ?? defaultValue;
   if (value == null) {

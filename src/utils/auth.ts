@@ -1,5 +1,3 @@
-import 'server-only';
-
 import bcrypt from 'bcryptjs';
 
 import { ENV } from './env';

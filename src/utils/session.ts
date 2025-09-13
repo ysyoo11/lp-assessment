@@ -6,6 +6,8 @@ import z from 'zod';
 
 import { redisClient } from '@/lib/redis';
 
+import { isProduction } from './env';
+
 export const SESSION_EXPIRATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
 export const COOKIE_SESSION_KEY = 'session-id';
 
@@ -14,7 +16,7 @@ const sessionSchema = z.object({
   name: z.string()
 });
 
-type UserSession = z.infer<typeof sessionSchema>;
+export type UserSession = z.infer<typeof sessionSchema>;
 
 export async function getUserFromSession(): Promise<UserSession | null> {
   const cookieStore = await cookies();
@@ -42,7 +44,7 @@ export async function removeUserFromSession() {
 async function setCookie(sessionId: string) {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_SESSION_KEY, sessionId, {
-    secure: true,
+    secure: isProduction,
     httpOnly: true,
     sameSite: 'lax',
     expires: Date.now() + SESSION_EXPIRATION_SECONDS * 1000

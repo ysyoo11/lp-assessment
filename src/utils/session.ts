@@ -30,6 +30,15 @@ export async function createUserSession(user: UserSession) {
   await setCookie(sessionId);
 }
 
+export async function removeUserFromSession() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(COOKIE_SESSION_KEY)?.value;
+  if (sessionId == null) return null;
+
+  await redisClient.del(`session:${sessionId}`);
+  cookieStore.delete(COOKIE_SESSION_KEY);
+}
+
 async function setCookie(sessionId: string) {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_SESSION_KEY, sessionId, {

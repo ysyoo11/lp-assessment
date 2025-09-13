@@ -48,7 +48,7 @@ export async function logIn(
       return {
         data,
         error: {
-          formErrors: ['User not found'],
+          formErrors: ['Invalid credentials'],
           fieldErrors: {}
         }
       };

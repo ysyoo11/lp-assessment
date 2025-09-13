@@ -25,9 +25,12 @@ export default function LoginForm() {
   const [state, loginAction, isPending] = useActionState(logIn, initialState);
 
   return (
-    <form action={loginAction} className='space-y-4'>
+    <form action={loginAction} className='space-y-4' data-testid='login-form'>
       {state.error?.formErrors[0] && (
-        <ErrorMessage message={state.error.formErrors[0]} />
+        <ErrorMessage
+          message={state.error.formErrors[0]}
+          data-testid='login-error'
+        />
       )}
       <Input
         type='email'
@@ -37,6 +40,7 @@ export default function LoginForm() {
         placeholder='john@example.com'
         defaultValue={state.data.email}
         error={state.error?.fieldErrors?.email?.[0]}
+        data-testid='email-input'
       />
       <Input
         type='password'
@@ -46,9 +50,15 @@ export default function LoginForm() {
         placeholder='********'
         defaultValue={state.data.password}
         error={state.error?.fieldErrors?.password?.[0]}
+        data-testid='password-input'
       />
       <div className='flex justify-center'>
-        <Button type='submit' className='self-center' disabled={isPending}>
+        <Button
+          type='submit'
+          className='self-center'
+          disabled={isPending}
+          data-testid='login-button'
+        >
           {isPending ? 'Logging in...' : 'Log in'}
         </Button>
       </div>

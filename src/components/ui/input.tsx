@@ -39,7 +39,12 @@ function Input({
         )}
         {...props}
       />
-      {error && <ErrorMessage message={error} />}
+      {error && (
+        <ErrorMessage
+          message={error}
+          data-testid={props.id ? `${props.id}-error` : 'field-error'}
+        />
+      )}
     </div>
   );
 }

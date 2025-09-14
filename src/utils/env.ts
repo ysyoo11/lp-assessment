@@ -4,7 +4,9 @@ const ENV_KEYS = [
   'REDIS_URL',
   'REDIS_TOKEN',
   'ELASTICSEARCH_URL',
-  'ELASTICSEARCH_API_KEY'
+  'ELASTICSEARCH_API_KEY',
+  'AUS_POST_API_URL',
+  'AUS_POST_API_KEY'
 ] as const;
 
 type EnvKey = (typeof ENV_KEYS)[number];
@@ -14,7 +16,9 @@ export const ENV = {
   REDIS_URL: required('REDIS_URL'),
   REDIS_TOKEN: required('REDIS_TOKEN'),
   ELASTICSEARCH_URL: required('ELASTICSEARCH_URL'),
-  ELASTICSEARCH_API_KEY: required('ELASTICSEARCH_API_KEY')
+  ELASTICSEARCH_API_KEY: required('ELASTICSEARCH_API_KEY'),
+  AUS_POST_API_URL: required('AUS_POST_API_URL'),
+  AUS_POST_API_KEY: required('AUS_POST_API_KEY')
 };
 
 export const isProduction = process.env.NODE_ENV === 'production';

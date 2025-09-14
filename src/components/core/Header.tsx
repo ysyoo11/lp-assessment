@@ -1,15 +1,16 @@
+'use client';
+
 import { logOut } from '@/server-actions/log-out';
 
 import Logo from '../svg/Logo';
 
 export default function Header() {
   return (
-    <header className='border-b px-4 py-2'>
+    <header className='sticky top-0 z-30 border-b bg-white px-4 py-2'>
       <div className='flex items-center justify-between'>
         <Logo className='w-32 sm:w-40' />
         <form
           action={async () => {
-            'use server';
             await logOut();
           }}
         >

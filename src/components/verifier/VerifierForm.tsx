@@ -1,0 +1,145 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { useAddressValidation } from '@/hooks/use-address-validation';
+import { states } from '@/types/locality';
+import {
+  ValidateAddressSchema,
+  validateAddressSchema
+} from '@/validation/validate-address';
+
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input
+} from '../ui';
+import ErrorMessage from '../ui/error-message';
+
+export default function VerifierForm() {
+  const form = useForm<ValidateAddressSchema>({
+    resolver: zodResolver(validateAddressSchema),
+    defaultValues: {
+      postcode: '',
+      suburb: '',
+      state: 'NSW'
+    }
+  });
+  const { validateAddress, loading, error } = useAddressValidation();
+
+  const isButtonDisabled = loading || !form.formState.isValid;
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(validateAddress)}
+        className='w-full shrink-0 space-y-8 sm:max-w-xs'
+      >
+        {error && (
+          <ErrorMessage
+            message={error}
+            data-testid='address-verification-error-message'
+          />
+        )}
+        <div className='space-y-4'>
+          <FormField
+            control={form.control}
+            name='postcode'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Postcode</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder='2000'
+                    maxLength={4}
+                    disabled={loading}
+                    data-testid='postcode-input'
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='suburb'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Suburb</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder='Sydney'
+                    maxLength={100}
+                    disabled={loading}
+                    data-testid='suburb-input'
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='state'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>State</FormLabel>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      disabled={loading}
+                      data-testid='state-dropdown-trigger'
+                    >
+                      <div className='rounded-md border px-2 py-1'>
+                        {field.value}
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className='w-40'>
+                      {states.map((state) => (
+                        <DropdownMenuCheckboxItem
+                          key={state}
+                          checked={field.value === state}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              field.onChange(state);
+                            }
+                          }}
+                          data-testid={`state-dropdown-item-${state}`}
+                        >
+                          {state}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className='flex justify-center'>
+          <Button
+            type='submit'
+            className='w-full sm:w-auto'
+            disabled={isButtonDisabled}
+            data-testid='verify-button'
+          >
+            Verify
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}

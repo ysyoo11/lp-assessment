@@ -329,6 +329,154 @@ test.describe('Address Validation', () => {
     });
   });
 
+  test.describe('Valid Address Input', () => {
+    test('should show success message when all inputs are valid - Melbourne VIC 3000', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '3000' &&
+          postData.variables?.state === 'VIC' &&
+          postData.variables?.suburb === 'Melbourne'
+        ) {
+          // Mock GraphQL response format for valid address
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: true,
+                message: 'The postcode, suburb, and state input are valid.'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with valid address data: Melbourne VIC 3000
+      // For Safari compatibility: focus, clear, then fill
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('3000');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Melbourne');
+
+      // Select VIC state
+      await page.getByTestId('state-dropdown-trigger').click();
+      await page.getByTestId('state-dropdown-item-VIC').click();
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 5000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the success message to appear
+      await expect(
+        page.getByTestId('address-verification-success-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-success-message')
+      ).toHaveText('The postcode, suburb, and state input are valid.');
+
+      // Ensure no error message is displayed
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).not.toBeVisible();
+    });
+
+    test('should show success message when all inputs are valid - Brisbane QLD 4000', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '4000' &&
+          postData.variables?.state === 'QLD' &&
+          postData.variables?.suburb === 'Brisbane'
+        ) {
+          // Mock GraphQL response format for valid address
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: true,
+                message: 'The postcode, suburb, and state input are valid.'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with valid address data: Brisbane QLD 4000
+      // For Safari compatibility: focus, clear, then fill
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('4000');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Brisbane');
+
+      // Select QLD state
+      await page.getByTestId('state-dropdown-trigger').click();
+      await page.getByTestId('state-dropdown-item-QLD').click();
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 5000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the success message to appear
+      await expect(
+        page.getByTestId('address-verification-success-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-success-message')
+      ).toHaveText('The postcode, suburb, and state input are valid.');
+
+      // Ensure no error message is displayed
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).not.toBeVisible();
+    });
+  });
+
   test.afterEach(async () => {
     try {
       // Clean up test session from Redis

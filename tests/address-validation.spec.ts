@@ -1,0 +1,201 @@
+import { expect, test } from '@playwright/test';
+import crypto from 'crypto';
+
+import { redisClient } from '@/lib/redis';
+import { UserSession } from '@/utils/session';
+
+test.describe('Address Validation', () => {
+  let sessionId: string;
+  let mockUser: UserSession;
+
+  test.beforeEach(async ({ page }, testInfo) => {
+    // Skip this test if external services are not available
+    test.skip(
+      process.env.CI === 'true' || !process.env.REDIS_URL,
+      'Skipping integration test - requires Redis'
+    );
+
+    // Create unique mock user for each browser to avoid conflicts in parallel execution
+    const projectName = testInfo.project.name || 'default';
+    mockUser = {
+      id: crypto.randomUUID(),
+      name: `Test User ${projectName}`
+    };
+
+    try {
+      // Create session in Redis with mock user data
+      sessionId = crypto.randomBytes(32).toString('hex');
+      const userSession: UserSession = {
+        id: mockUser.id,
+        name: mockUser.name
+      };
+
+      await redisClient.set(`session:${sessionId}`, userSession, {
+        ex: 3600 // 1 hour
+      });
+
+      // Set session cookie in browser
+      await page.context().addCookies([
+        {
+          name: 'session-id',
+          value: sessionId,
+          domain: 'localhost',
+          path: '/',
+          httpOnly: true,
+          secure: false,
+          sameSite: 'Lax'
+        }
+      ]);
+    } catch (error) {
+      console.warn('Failed to create test session:', error);
+      test.skip();
+    }
+  });
+
+  test.describe('Postcode and Suburb Mismatch', () => {
+    test('should show error when postcode does not match suburb - Broadway example', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '2000' &&
+          postData.variables?.state === 'NSW' &&
+          postData.variables?.suburb === 'Broadway'
+        ) {
+          // Mock GraphQL response format for postcode/suburb mismatch
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: false,
+                message: 'The postcode 2000 does not match the suburb Broadway.'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with mismatched data: postcode 2000 with Broadway
+      // For Safari compatibility: focus, clear, then type
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('2000');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Broadway');
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      // Wait for button to be enabled and click
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 5000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the error message to appear
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toHaveText('The postcode 2000 does not match the suburb Broadway.');
+    });
+
+    test('should show error when postcode does not match suburb - Melbourne example', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '2000' &&
+          postData.variables?.state === 'VIC' &&
+          postData.variables?.suburb === 'Melbourne'
+        ) {
+          // Mock GraphQL response format for no results found
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: false,
+                message: 'No results found for postcode 2000 in state VIC.'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with mismatched data: postcode 2000 with Melbourne (which should be 3000)
+      // For Safari compatibility: focus, clear, then type
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('2000');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Melbourne');
+
+      // Select VIC state
+      await page.getByTestId('state-dropdown-trigger').click();
+      await page.getByTestId('state-dropdown-item-VIC').click();
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      // Wait for button to be enabled and click
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 2000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the error message to appear
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toHaveText('No results found for postcode 2000 in state VIC.');
+    });
+  });
+
+  test.afterEach(async () => {
+    try {
+      // Clean up test session from Redis
+      if (sessionId) {
+        await redisClient.del(`session:${sessionId}`);
+      }
+    } catch (error) {
+      console.warn('Session cleanup failed:', error);
+    }
+  });
+});

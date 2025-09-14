@@ -7,6 +7,7 @@ import { UserSession } from '@/utils/session';
 test.describe('Auth Middleware Protection', () => {
   let mockUser: UserSession;
 
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
       process.env.CI === 'true' || !process.env.REDIS_URL,
@@ -177,6 +178,7 @@ test.describe('Auth Middleware Protection', () => {
           if (sessionValue && sessionValue.name === mockUser.name) {
             await redisClient.del(key);
           }
+          /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
         } catch (error) {
           // Skip invalid sessions
         }

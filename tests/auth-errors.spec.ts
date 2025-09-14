@@ -12,6 +12,7 @@ type TestUser = NewUser;
 test.describe('Auth Errors', () => {
   let testUser: TestUser;
 
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
       process.env.CI === 'true' || !process.env.ELASTICSEARCH_URL,
@@ -127,6 +128,7 @@ test.describe('Auth Errors', () => {
           if (sessionValue && sessionValue.name === testUser.name) {
             await redisClient.del(key);
           }
+          /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
         } catch (error) {
           // Skip invalid sessions
         }

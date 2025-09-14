@@ -1,53 +1,34 @@
 import { expect, test } from '@playwright/test';
 import crypto from 'crypto';
 
-import { esClient } from '@/lib/elastic';
 import { redisClient } from '@/lib/redis';
-import { NewUser } from '@/types/user';
-import { hashPassword } from '@/utils/auth';
 import { UserSession } from '@/utils/session';
 
-type TestUser = NewUser;
-
 test.describe('Log out', () => {
-  let testUser: TestUser;
   let sessionId: string;
+  let mockUser: { id: string; name: string };
 
   test.beforeEach(async ({ page }, testInfo) => {
     // Skip this test if external services are not available
     test.skip(
-      process.env.CI === 'true' || !process.env.ELASTICSEARCH_URL,
-      'Skipping integration test - requires Elasticsearch and Redis'
+      process.env.CI === 'true' || !process.env.REDIS_URL,
+      'Skipping integration test - requires Redis'
     );
 
-    // Create unique test user for each browser to avoid conflicts in parallel execution
     const projectName = testInfo.project.name || 'default';
-    testUser = {
+
+    // Create mock user data (no need for real user in database)
+    mockUser = {
       id: crypto.randomUUID(),
-      name: `Test User ${projectName}`,
-      email: `test-user-logout-${projectName}@example.com`,
-      password: 'TestPassword123!'
+      name: `Mock User Logout ${projectName}`
     };
 
     try {
-      // Create test user in Elasticsearch
-      const hashedPassword = await hashPassword(testUser.password);
-      await esClient.index({
-        index: 'users',
-        id: testUser.id,
-        document: {
-          ...testUser,
-          password: hashedPassword,
-          createdAt: new Date().toISOString()
-        },
-        refresh: 'wait_for'
-      });
-
-      // Create session in Redis
+      // Create session in Redis with mock user data
       sessionId = crypto.randomBytes(32).toString('hex');
       const userSession: UserSession = {
-        id: testUser.id,
-        name: testUser.name
+        id: mockUser.id,
+        name: mockUser.name
       };
 
       await redisClient.set(`session:${sessionId}`, userSession, {
@@ -68,7 +49,7 @@ test.describe('Log out', () => {
 
       await page.goto('/');
     } catch (error) {
-      console.warn('Failed to setup test:', error);
+      console.warn('Failed to setup logout test:', error);
       test.skip();
     }
   });
@@ -97,26 +78,13 @@ test.describe('Log out', () => {
   });
 
   test.afterEach(async () => {
-    if (!testUser) return;
-
     try {
-      // Clean up test user from Elasticsearch
-      await esClient.deleteByQuery({
-        index: 'users',
-        query: {
-          term: {
-            'email.keyword': testUser.email
-          }
-        },
-        conflicts: 'proceed'
-      });
-
-      // Clean up test user sessions from Redis
+      // Clean up test session from Redis
       if (sessionId) {
         await redisClient.del(`session:${sessionId}`);
       }
     } catch (error) {
-      console.warn('Cleanup failed:', error);
+      console.warn('Session cleanup failed:', error);
     }
   });
 });

@@ -6,7 +6,7 @@ import { UserSession } from '@/utils/session';
 
 test.describe('Log out', () => {
   let sessionId: string;
-  let mockUser: { id: string; name: string };
+  let mockUser: UserSession;
 
   test.beforeEach(async ({ page }, testInfo) => {
     // Skip this test if external services are not available

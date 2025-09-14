@@ -6,7 +6,7 @@ import { UserSession } from '@/utils/session';
 
 test.describe('Session Management', () => {
   let sessionId: string;
-  let mockUser: { id: string; name: string };
+  let mockUser: UserSession;
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(

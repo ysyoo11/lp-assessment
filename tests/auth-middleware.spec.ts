@@ -1,29 +1,24 @@
 import { expect, test } from '@playwright/test';
 import crypto from 'crypto';
 
-import { esClient } from '@/lib/elastic';
 import { redisClient } from '@/lib/redis';
-import { NewUser } from '@/types/user';
-import { hashPassword } from '@/utils/auth';
 import { UserSession } from '@/utils/session';
 
-type TestUser = NewUser;
-
 test.describe('Auth Middleware Protection', () => {
-  let testUser: TestUser;
+  let mockUser: UserSession;
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      process.env.CI === 'true' || !process.env.ELASTICSEARCH_URL,
-      'Skipping integration test - requires Elasticsearch and Redis'
+      process.env.CI === 'true' || !process.env.REDIS_URL,
+      'Skipping integration test - requires Redis'
     );
 
     const projectName = testInfo.project.name || 'default';
-    testUser = {
+
+    // Create mock user data (no need for real user in database)
+    mockUser = {
       id: crypto.randomUUID(),
-      name: `Test User Middleware ${projectName}`,
-      email: `test-user-middleware-${projectName}@example.com`,
-      password: 'TestPassword123!'
+      name: `Mock User Middleware ${projectName}`
     };
   });
 
@@ -67,24 +62,11 @@ test.describe('Auth Middleware Protection', () => {
 
   test('Authenticated users cannot access the login page', async ({ page }) => {
     try {
-      // Create test user in Elasticsearch
-      const hashedPassword = await hashPassword(testUser.password);
-      await esClient.index({
-        index: 'users',
-        id: testUser.id,
-        document: {
-          ...testUser,
-          password: hashedPassword,
-          createdAt: new Date().toISOString()
-        },
-        refresh: 'wait_for'
-      });
-
-      // Create valid session in Redis
+      // Create valid session in Redis with mock user data
       const sessionId = crypto.randomBytes(32).toString('hex');
       const userSession: UserSession = {
-        id: testUser.id,
-        name: testUser.name
+        id: mockUser.id,
+        name: mockUser.name
       };
 
       await redisClient.set(`session:${sessionId}`, userSession, {
@@ -117,24 +99,11 @@ test.describe('Auth Middleware Protection', () => {
     page
   }) => {
     try {
-      // Create test user in Elasticsearch
-      const hashedPassword = await hashPassword(testUser.password);
-      await esClient.index({
-        index: 'users',
-        id: testUser.id,
-        document: {
-          ...testUser,
-          password: hashedPassword,
-          createdAt: new Date().toISOString()
-        },
-        refresh: 'wait_for'
-      });
-
-      // Create valid session in Redis
+      // Create valid session in Redis with mock user data
       const sessionId = crypto.randomBytes(32).toString('hex');
       const userSession: UserSession = {
-        id: testUser.id,
-        name: testUser.name
+        id: mockUser.id,
+        name: mockUser.name
       };
 
       await redisClient.set(`session:${sessionId}`, userSession, {
@@ -165,24 +134,11 @@ test.describe('Auth Middleware Protection', () => {
 
   test('Authenticated users can access protected routes', async ({ page }) => {
     try {
-      // Create test user in Elasticsearch
-      const hashedPassword = await hashPassword(testUser.password);
-      await esClient.index({
-        index: 'users',
-        id: testUser.id,
-        document: {
-          ...testUser,
-          password: hashedPassword,
-          createdAt: new Date().toISOString()
-        },
-        refresh: 'wait_for'
-      });
-
-      // Create valid session in Redis
+      // Create valid session in Redis with mock user data
       const sessionId = crypto.randomBytes(32).toString('hex');
       const userSession: UserSession = {
-        id: testUser.id,
-        name: testUser.name
+        id: mockUser.id,
+        name: mockUser.name
       };
 
       await redisClient.set(`session:${sessionId}`, userSession, {
@@ -212,26 +168,13 @@ test.describe('Auth Middleware Protection', () => {
   });
 
   test.afterEach(async () => {
-    if (!testUser) return;
-
     try {
-      // Clean up test user from Elasticsearch
-      await esClient.deleteByQuery({
-        index: 'users',
-        query: {
-          term: {
-            'email.keyword': testUser.email
-          }
-        },
-        conflicts: 'proceed'
-      });
-
       // Clean up any test sessions from Redis
       const sessionKeys = await redisClient.keys('session:*');
       for (const key of sessionKeys) {
         try {
           const sessionValue = (await redisClient.get(key)) as UserSession;
-          if (sessionValue && sessionValue.name === testUser.name) {
+          if (sessionValue && sessionValue.name === mockUser.name) {
             await redisClient.del(key);
           }
         } catch (error) {
@@ -239,7 +182,7 @@ test.describe('Auth Middleware Protection', () => {
         }
       }
     } catch (error) {
-      console.warn('Cleanup failed:', error);
+      console.warn('Session cleanup failed:', error);
     }
   });
 });

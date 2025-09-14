@@ -4,12 +4,13 @@ import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import z from 'zod';
 
+import {
+  COOKIE_SESSION_KEY,
+  SESSION_EXPIRATION_SECONDS
+} from '@/constants/session';
 import { redisClient } from '@/lib/redis';
 
 import { isProduction } from './env';
-
-export const SESSION_EXPIRATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
-export const COOKIE_SESSION_KEY = 'session-id';
 
 const sessionSchema = z.object({
   id: z.string(),

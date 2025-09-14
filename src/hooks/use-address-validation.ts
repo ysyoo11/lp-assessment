@@ -9,6 +9,7 @@ import { ValidateAddressSchema } from '@/validation/validate-address';
 
 export function useAddressValidation() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [runQuery, { loading, data, error }] =
     useLazyQuery<ValidateAddressResponse['data']>(VALIDATE_ADDRESS);
 
@@ -31,9 +32,11 @@ export function useAddressValidation() {
 
     if (!result.success) {
       setErrorMessage(result.message);
+      setSuccessMessage(null);
       toast.error(result.message);
     } else {
       setErrorMessage(null);
+      setSuccessMessage(result.message);
       toast.success(result.message);
     }
   }, [data, error]);
@@ -41,6 +44,7 @@ export function useAddressValidation() {
   return {
     validateAddress,
     loading,
-    error: errorMessage
+    errorMessage,
+    successMessage
   };
 }

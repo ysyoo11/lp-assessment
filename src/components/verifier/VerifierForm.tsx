@@ -35,7 +35,8 @@ export default function VerifierForm() {
       state: 'NSW'
     }
   });
-  const { validateAddress, loading, error } = useAddressValidation();
+  const { validateAddress, loading, errorMessage, successMessage } =
+    useAddressValidation();
 
   const isButtonDisabled = loading || !form.formState.isValid;
 
@@ -45,11 +46,19 @@ export default function VerifierForm() {
         onSubmit={form.handleSubmit(validateAddress)}
         className='w-full shrink-0 space-y-8 sm:max-w-xs'
       >
-        {error && (
+        {errorMessage && (
           <ErrorMessage
-            message={error}
+            message={errorMessage}
             data-testid='address-verification-error-message'
           />
+        )}
+        {successMessage && (
+          <div
+            className='rounded-lg border border-green-500 bg-green-100 p-4 text-sm text-green-800'
+            data-testid='address-verification-success-message'
+          >
+            {successMessage}
+          </div>
         )}
         <div className='space-y-4'>
           <FormField

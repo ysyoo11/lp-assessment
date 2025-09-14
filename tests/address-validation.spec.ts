@@ -188,6 +188,147 @@ test.describe('Address Validation', () => {
     });
   });
 
+  test.describe('Suburb and State Mismatch', () => {
+    test('should show error when suburb does not exist in selected state - Ferntree Gully in TAS', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '3156' &&
+          postData.variables?.state === 'TAS' &&
+          postData.variables?.suburb === 'Ferntree Gully'
+        ) {
+          // Mock GraphQL response format for suburb/state mismatch
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: false,
+                message:
+                  'The suburb Ferntree Gully does not exist in the state (TAS).'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with suburb/state mismatch: Ferntree Gully (VIC) with TAS state
+      // For Safari compatibility: focus, clear, then fill
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('3156');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Ferntree Gully');
+
+      // Select TAS state (Ferntree Gully is actually in VIC)
+      await page.getByTestId('state-dropdown-trigger').click();
+      await page.getByTestId('state-dropdown-item-TAS').click();
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 5000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the error message to appear
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toHaveText(
+        'The suburb Ferntree Gully does not exist in the state (TAS).'
+      );
+    });
+
+    test('should show error when suburb does not exist in selected state - Perth in NSW', async ({
+      page
+    }) => {
+      // Mock the GraphQL proxy API
+      await page.route('**/api/graphql-proxy', async (route) => {
+        const request = route.request();
+        const postData = await request.postDataJSON();
+
+        if (
+          postData.variables?.postcode === '6000' &&
+          postData.variables?.state === 'NSW' &&
+          postData.variables?.suburb === 'Perth'
+        ) {
+          // Mock GraphQL response format for suburb/state mismatch
+          const mockResponse = {
+            data: {
+              validateAddress: {
+                success: false,
+                message: 'The suburb Perth does not exist in the state (NSW).'
+              }
+            }
+          };
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockResponse)
+          });
+        } else {
+          await route.continue();
+        }
+      });
+
+      await page.goto('/');
+
+      // Fill in the form with suburb/state mismatch: Perth (WA) with NSW state
+      // For Safari compatibility: focus, clear, then fill
+      await page.getByTestId('postcode-input').focus();
+      await page.getByTestId('postcode-input').clear();
+      await page.getByTestId('postcode-input').fill('6000');
+
+      await page.getByTestId('suburb-input').focus();
+      await page.getByTestId('suburb-input').clear();
+      await page.getByTestId('suburb-input').fill('Perth');
+
+      // Select NSW state (Perth is actually in WA)
+      await page.getByTestId('state-dropdown-trigger').click();
+      await page.getByTestId('state-dropdown-item-NSW').click();
+
+      // Wait for form validation to complete and button to be enabled
+      await page.waitForTimeout(1000);
+
+      await expect(page.getByTestId('verify-button')).toBeEnabled({
+        timeout: 5000
+      });
+      await page.getByTestId('verify-button').click();
+
+      await page.waitForTimeout(2000);
+
+      // Wait for the error message to appear
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toBeVisible({ timeout: 10000 });
+      await expect(
+        page.getByTestId('address-verification-error-message')
+      ).toHaveText('The suburb Perth does not exist in the state (NSW).');
+    });
+  });
+
   test.afterEach(async () => {
     try {
       // Clean up test session from Redis

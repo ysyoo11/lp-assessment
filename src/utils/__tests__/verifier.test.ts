@@ -45,7 +45,7 @@ describe('validateAddressData', () => {
           '2000',
           'NSW'
         ),
-        status: 400
+        status: 200
       });
     });
   });
@@ -65,7 +65,7 @@ describe('validateAddressData', () => {
           '2000',
           'Sydney'
         ),
-        status: 400
+        status: 200
       });
     });
 
@@ -91,7 +91,7 @@ describe('validateAddressData', () => {
           'Sydney',
           'NSW'
         ),
-        status: 400
+        status: 200
       });
     });
 
@@ -125,6 +125,8 @@ describe('validateAddressData', () => {
       expect(result).toEqual<ValidationResult>({
         success: true,
         message: VALIDATION_SUCCESS_MESSAGE,
+        latitude: -33.8688,
+        longitude: 151.2093,
         status: 200
       });
     });

@@ -12,6 +12,8 @@ export type ValidateAddressResponse = {
     validateAddress: {
       success: boolean;
       message: string;
+      latitude: number | null;
+      longitude: number | null;
     };
   };
 };
@@ -96,17 +98,37 @@ export async function POST(req: NextRequest) {
 function createResponse({
   success,
   message,
-  status
+  status,
+  latitude,
+  longitude
 }: ValidationResult): NextResponse<ValidateAddressResponse> {
-  return NextResponse.json<ValidateAddressResponse>(
-    {
-      data: {
-        validateAddress: {
-          success,
-          message
+  if (success) {
+    return NextResponse.json<ValidateAddressResponse>(
+      {
+        data: {
+          validateAddress: {
+            success,
+            message,
+            latitude: latitude ? Number(latitude) : null,
+            longitude: longitude ? Number(longitude) : null
+          }
         }
-      }
-    },
-    { status }
-  );
+      },
+      { status }
+    );
+  } else {
+    return NextResponse.json<ValidateAddressResponse>(
+      {
+        data: {
+          validateAddress: {
+            success,
+            message,
+            latitude: null,
+            longitude: null
+          }
+        }
+      },
+      { status }
+    );
+  }
 }

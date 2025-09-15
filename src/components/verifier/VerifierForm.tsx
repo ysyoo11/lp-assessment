@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { STORAGE_KEYS } from '@/constants/storage';
-import { useAddressValidation, useFormPersistence } from '@/hooks';
+import { useAddressValidation } from '@/contexts';
+import { useFormPersistence } from '@/hooks';
 import { states } from '@/types/locality';
 import {
   ValidateAddressSchema,

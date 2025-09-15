@@ -11,6 +11,8 @@ import {
 export type ValidationResult = {
   success: boolean;
   message: string;
+  latitude?: Locality['latitude'];
+  longitude?: Locality['longitude'];
   status: number;
 };
 
@@ -33,7 +35,7 @@ export function validateAddressData(
         postcode,
         state
       ),
-      status: 400
+      status: 200
     };
   }
 
@@ -46,7 +48,7 @@ export function validateAddressData(
         postcode,
         suburb
       ),
-      status: 400
+      status: 200
     };
   }
 
@@ -54,7 +56,7 @@ export function validateAddressData(
     return {
       success: false,
       message: VALIDATION_ERROR_MESSAGES.SUBURB_STATE_MISMATCH(suburb, state),
-      status: 400
+      status: 200
     };
   }
 
@@ -62,6 +64,8 @@ export function validateAddressData(
   return {
     success: true,
     message: VALIDATION_SUCCESS_MESSAGE,
+    latitude: matchedSuburb.latitude,
+    longitude: matchedSuburb.longitude,
     status: 200
   };
 }

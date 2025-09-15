@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { logVerificationAttempt } from '@/data/log';
 import { Locality } from '@/types/locality';
 import { getCurrentUser } from '@/utils/current-user';
 import { ENV } from '@/utils/env';
@@ -38,16 +39,28 @@ export async function POST(req: NextRequest) {
 
   const validation = validateValidateAddress(variables);
   if (!validation.success) {
+    const message =
+      validation.error.fieldErrors['postcode']?.[0] ||
+      validation.error.fieldErrors['suburb']?.[0] ||
+      validation.error.fieldErrors['state']?.[0] ||
+      'Invalid input';
+
+    await logVerificationAttempt({
+      userId: sessionUser.id,
+      postcode: variables.postcode,
+      suburb: variables.suburb,
+      state: variables.state,
+      timestamp: new Date().toISOString(),
+      success: false,
+      errorMessage: message
+    });
+
     return NextResponse.json<ValidateAddressResponse>(
       {
         data: {
           validateAddress: {
             success: false,
-            message:
-              validation.error.fieldErrors['postcode']?.[0] ||
-              validation.error.fieldErrors['suburb']?.[0] ||
-              validation.error.fieldErrors['state']?.[0] ||
-              'Invalid input'
+            message
           }
         }
       },
@@ -56,6 +69,10 @@ export async function POST(req: NextRequest) {
   }
 
   const { postcode, suburb, state } = validation.data;
+
+  let success = false;
+  let message = '';
+  let status = 200;
 
   try {
     const res = await fetch(
@@ -68,84 +85,56 @@ export async function POST(req: NextRequest) {
     );
 
     const data = (await res.json()) as AusPostResponse;
-    const localities = data.localities.locality;
+    const localities = data.localities?.locality ?? [];
 
     // No results found for postcode in state
     if (!Array.isArray(localities) || localities.length === 0) {
-      return NextResponse.json<ValidateAddressResponse>(
-        {
-          data: {
-            validateAddress: {
-              success: false,
-              message: `No results found for postcode ${postcode} in state ${state}.`
-            }
-          }
-        },
-        { status: 200 }
-      );
+      message = `No results found for postcode ${postcode} in state ${state}.`;
+    } else {
+      // Find matched suburb
+      const matchedSuburb = localities.find((locality) => {
+        const localityName =
+          'location' in locality ? locality.location : locality.suburb;
+        return localityName.toLowerCase() === suburb.toLowerCase();
+      });
+
+      // No results found for suburb in postcode
+      if (!matchedSuburb) {
+        message = `The postcode ${postcode} does not match the suburb ${suburb}.`;
+      } else if (matchedSuburb?.state.toLowerCase() !== state.toLowerCase()) {
+        // Suburb does not exist in state
+        message = `The suburb ${suburb} does not exist in the state (${state}).`;
+      } else {
+        // All checks passed
+        success = true;
+        message = 'The postcode, suburb, and state input are valid.';
+      }
     }
-
-    // Find matched suburb
-    const matchedSuburb = localities.find((locality) => {
-      const localityName =
-        'location' in locality ? locality.location : locality.suburb;
-      return localityName.toLowerCase() === suburb.toLowerCase();
-    });
-
-    // No results found for suburb in postcode
-    if (!matchedSuburb) {
-      return NextResponse.json<ValidateAddressResponse>(
-        {
-          data: {
-            validateAddress: {
-              success: false,
-              message: `The postcode ${postcode} does not match the suburb ${suburb}.`
-            }
-          }
-        },
-        { status: 200 }
-      );
-    }
-
-    // Suburb does not exist in state
-    if (matchedSuburb?.state.toLowerCase() !== state.toLowerCase()) {
-      return NextResponse.json<ValidateAddressResponse>(
-        {
-          data: {
-            validateAddress: {
-              success: false,
-              message: `The suburb ${suburb} does not exist in the state (${state}).`
-            }
-          }
-        },
-        { status: 200 }
-      );
-    }
-
-    // All checks passed
-    return NextResponse.json<ValidateAddressResponse>(
-      {
-        data: {
-          validateAddress: {
-            success: true,
-            message: 'The postcode, suburb, and state input are valid.'
-          }
-        }
-      },
-      { status: 200 }
-    );
   } catch (error) {
     console.error(error);
-    return NextResponse.json<ValidateAddressResponse>(
-      {
-        data: {
-          validateAddress: {
-            success: false,
-            message: 'Internal server error. Please try again later.'
-          }
-        }
-      },
-      { status: 500 }
-    );
+    message = 'Internal server error. Please try again later.';
+    status = 500;
   }
+
+  await logVerificationAttempt({
+    userId: sessionUser.id,
+    postcode,
+    suburb,
+    state,
+    timestamp: new Date().toISOString(),
+    success,
+    errorMessage: success ? undefined : message
+  });
+
+  return NextResponse.json<ValidateAddressResponse>(
+    {
+      data: {
+        validateAddress: {
+          success,
+          message
+        }
+      }
+    },
+    { status }
+  );
 }

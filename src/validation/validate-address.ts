@@ -3,13 +3,20 @@ import z from 'zod';
 import { states } from '@/types/locality';
 
 export const validateAddressSchema = z.object({
-  postcode: z.string().length(4, { error: 'Postcode must be 4 digits' }),
+  postcode: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, { message: 'Postcode must be exactly 4 digits' }),
   suburb: z
     .string()
     .trim()
-    .min(1, { error: 'Suburb is required' })
-    .max(100, { error: 'Suburb must be less than 100 characters' }),
-  state: z.enum(states, { error: 'State is required' })
+    .min(1, { message: 'Suburb is required' })
+    .max(100, { message: 'Suburb must be less than 100 characters' })
+    .regex(/^[a-zA-Z0-9\s'\-\.]+$/, {
+      message:
+        'Suburb can only contain letters, numbers, spaces, apostrophes, hyphens, and periods'
+    }),
+  state: z.enum(states, { message: 'State is required' })
 });
 
 export type ValidateAddressSchema = z.infer<typeof validateAddressSchema>;

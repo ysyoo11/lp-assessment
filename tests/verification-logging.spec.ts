@@ -196,7 +196,9 @@ test.describe('Verification Logging to Elasticsearch', () => {
     });
     expect(logEntry.timestamp).toBeDefined();
     expect(logEntry.errorMessage).toBeDefined();
-    expect(logEntry.errorMessage).toContain('Postcode must be 4 digits');
+    expect(logEntry.errorMessage).toContain(
+      'Postcode must be exactly 4 digits'
+    );
   });
 
   test.afterEach(async () => {

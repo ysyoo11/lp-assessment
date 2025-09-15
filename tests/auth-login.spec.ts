@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import crypto from 'crypto';
 
+import { ELASTICSEARCH_INDEXES } from '@/constants/elasticsearch';
 import { esClient } from '@/lib/elastic';
 import { redisClient } from '@/lib/redis';
 import { NewUser } from '@/types/user';
@@ -32,7 +33,7 @@ test.describe('Log in', () => {
       const hashedPassword = await hashPassword(testUser.password);
 
       await esClient.index({
-        index: 'users',
+        index: ELASTICSEARCH_INDEXES.USERS,
         id: testUser.id,
         document: {
           ...testUser,
@@ -59,42 +60,6 @@ test.describe('Log in', () => {
 
     await page.waitForTimeout(2000);
 
-    const currentUrl = page.url();
-
-    if (currentUrl.includes('/login')) {
-      const errorElement = await page
-        .getByTestId('login-error')
-        .isVisible()
-        .catch(() => false);
-      if (errorElement) {
-        const errorText = await page.getByTestId('login-error').textContent();
-        console.log(`Login error found: ${errorText}`);
-      }
-
-      const emailError = await page
-        .getByTestId('email-error')
-        .isVisible()
-        .catch(() => false);
-      const passwordError = await page
-        .getByTestId('password-error')
-        .isVisible()
-        .catch(() => false);
-
-      if (emailError) {
-        const emailErrorText = await page
-          .getByTestId('email-error')
-          .textContent();
-        console.log(`Email error: ${emailErrorText}`);
-      }
-
-      if (passwordError) {
-        const passwordErrorText = await page
-          .getByTestId('password-error')
-          .textContent();
-        console.log(`Password error: ${passwordErrorText}`);
-      }
-    }
-
     await expect(page).toHaveURL('/');
 
     // Verify session cookie was created (this is the main proof of successful login)
@@ -107,8 +72,6 @@ test.describe('Log in', () => {
 
     // Verify the home page content is visible (user is authenticated)
     await expect(page.getByTestId('logout-button')).toBeVisible();
-
-    console.log('✓ Login successful: redirect + session creation verified');
   });
 
   test.afterEach(async () => {
@@ -117,7 +80,7 @@ test.describe('Log in', () => {
     try {
       // Clean up test user from Elasticsearch
       await esClient.deleteByQuery({
-        index: 'users',
+        index: ELASTICSEARCH_INDEXES.USERS,
         query: {
           term: {
             'email.keyword': testUser.email

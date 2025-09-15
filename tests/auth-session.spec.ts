@@ -75,8 +75,6 @@ test.describe('Session Management', () => {
     expect(initialSessionValue.id).toBe(mockUser.id);
     expect(initialSessionValue.name).toBe(mockUser.name);
 
-    console.log('✓ Initial session verified');
-
     // Refresh the page
     await page.reload();
 
@@ -99,8 +97,6 @@ test.describe('Session Management', () => {
     expect(refreshedSessionValue).toBeTruthy();
     expect(refreshedSessionValue.id).toBe(mockUser.id);
     expect(refreshedSessionValue.name).toBe(mockUser.name);
-
-    console.log('✓ Session persisted across page refresh');
   });
 
   test('Session persists when opening new tab/window', async ({ context }) => {
@@ -132,8 +128,6 @@ test.describe('Session Management', () => {
     expect(sessionCookie2).toBeTruthy();
     expect(sessionCookie1!.value).toBe(sessionCookie2!.value);
     expect(sessionCookie1!.value).toBe(sessionId);
-
-    console.log('✓ Session shared across multiple tabs/windows');
 
     await page1.close();
     await page2.close();

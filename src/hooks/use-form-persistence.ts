@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 
-import { Path, UseFormReturn, useWatch } from 'react-hook-form';
+import { Path, PathValue, UseFormReturn, useWatch } from 'react-hook-form';
 
-export function useFormPersistence<T extends Record<string, any>>(
-  form: UseFormReturn<T>,
-  storageKey: string
-) {
+export function useFormPersistence<
+  T extends Record<string, PathValue<T, Path<T>>>
+>(form: UseFormReturn<T>, storageKey: string) {
   const watchedValues = useWatch({
     control: form.control
   });

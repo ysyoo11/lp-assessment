@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import crypto from 'crypto';
 
+import { ELASTICSEARCH_INDEXES } from '@/constants/elasticsearch';
+import { esClient } from '@/lib/elastic';
 import { redisClient } from '@/lib/redis';
 import { UserSession } from '@/utils/session';
 
@@ -664,6 +666,19 @@ test.describe('Address Validation', () => {
       }
     } catch (error) {
       console.warn('Session cleanup failed:', error);
+    }
+
+    if (mockUser?.id) {
+      try {
+        await esClient.deleteByQuery({
+          index: ELASTICSEARCH_INDEXES.LOGS,
+          query: {
+            term: { 'userId.keyword': mockUser.id }
+          }
+        });
+      } catch (error) {
+        console.warn('Failed to clean up Elasticsearch logs:', error);
+      }
     }
   });
 });

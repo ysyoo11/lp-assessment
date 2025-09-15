@@ -1,20 +1,26 @@
 'use server';
 
+import { Ratelimit } from '@upstash/ratelimit';
 import { redirect } from 'next/navigation';
 
 import { LoginState } from '@/components/auth/LoginForm';
 import { getUserByEmail } from '@/data/user';
+import { rateLimitByIp } from '@/lib/rate-limit';
+import { redisClient as redis } from '@/lib/redis';
 import { comparePasswords } from '@/utils/auth';
 import { getCurrentUser } from '@/utils/current-user';
 import { createUserSession } from '@/utils/session';
 import { validateLogin } from '@/validation/login';
 
+const rateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1m')
+});
+
 export async function logIn(
   prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  // TODO: rate limit
-
   const data: LoginState['data'] = {
     email: formData.get('email') as string,
     password: formData.get('password') as string
@@ -31,6 +37,16 @@ export async function logIn(
   // TODO: Google ReCAPTCHA
 
   try {
+    const { success } = await rateLimitByIp(rateLimit);
+    if (!success) {
+      return {
+        data,
+        error: {
+          formErrors: ['Too many requests. Please try again later.'],
+          fieldErrors: {}
+        }
+      };
+    }
     const currentUser = await getCurrentUser();
     if (currentUser) {
       return {

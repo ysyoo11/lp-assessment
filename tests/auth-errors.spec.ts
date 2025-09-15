@@ -98,8 +98,6 @@ test.describe('Auth Errors', () => {
       await page.goto('/');
 
       await expect(page).toHaveURL('/login');
-
-      console.log('✓ Missing Redis session redirected to login');
     } catch (error) {
       console.warn('Failed to setup missing session test:', error);
       test.skip();

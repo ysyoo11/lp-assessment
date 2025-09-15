@@ -35,8 +35,6 @@ test.describe('Auth Middleware Protection', () => {
     await expect(page.getByTestId('email-input')).toBeVisible();
     await expect(page.getByTestId('password-input')).toBeVisible();
     await expect(page.getByTestId('login-button')).toBeVisible();
-
-    console.log('✓ Unauthenticated user redirected from "/" to "/login"');
   });
 
   test('Users with invalid/expired session are redirected to login', async ({
@@ -57,8 +55,6 @@ test.describe('Auth Middleware Protection', () => {
     await page.goto('/');
 
     await expect(page).toHaveURL('/login');
-
-    console.log('✓ Invalid session redirected from "/" to "/login"');
   });
 
   test('Authenticated users cannot access the login page', async ({ page }) => {
@@ -88,8 +84,6 @@ test.describe('Auth Middleware Protection', () => {
       await page.goto('/login');
 
       await expect(page).toHaveURL('/');
-
-      console.log('✓ Authenticated user redirected from "/login" to "/"');
     } catch (error) {
       console.warn('Failed to setup test:', error);
       test.skip();
@@ -125,8 +119,6 @@ test.describe('Auth Middleware Protection', () => {
       await page.goto('/signup');
 
       await expect(page).toHaveURL('/');
-
-      console.log('✓ Authenticated user redirected from "/signup" to "/"');
     } catch (error) {
       console.warn('Failed to setup test:', error);
       test.skip();
@@ -160,8 +152,6 @@ test.describe('Auth Middleware Protection', () => {
       await page.goto('/');
 
       await expect(page).toHaveURL('/');
-
-      console.log('✓ Authenticated user can access protected route "/"');
     } catch (error) {
       console.warn('Failed to setup test:', error);
       test.skip();

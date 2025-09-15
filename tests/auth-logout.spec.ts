@@ -73,8 +73,6 @@ test.describe('Log out', () => {
 
     const sessionValue = await redisClient.get(`session:${sessionId}`);
     expect(sessionValue).toBeNull();
-
-    console.log('✓ Logout successful: session cleared from cookie and Redis');
   });
 
   test.afterEach(async () => {

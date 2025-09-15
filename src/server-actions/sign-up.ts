@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 
 import { SignupState } from '@/components/auth/SignupForm';
 import { createUser, getUserByEmail } from '@/data/user';
+import { ensureUserIndexExists } from '@/lib/elastic';
 import { rateLimitByIp } from '@/lib/rate-limit';
 import { redisClient as redis } from '@/lib/redis';
 import { hashPassword } from '@/utils/auth';
@@ -50,6 +51,8 @@ export async function signUp(
         }
       };
     }
+
+    await ensureUserIndexExists();
 
     const currentUser = await getCurrentUser();
     if (currentUser) {

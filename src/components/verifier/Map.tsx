@@ -1,11 +1,15 @@
 'use client';
 
-import { GoogleMap, Marker } from '@react-google-maps/api';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 
 import { useAddressValidation } from '@/contexts';
 
 export default function Map() {
   const { coordinates, successMessage } = useAddressValidation();
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
+  });
 
   if (successMessage && coordinates === null) {
     return (
@@ -29,11 +33,11 @@ export default function Map() {
     lng: coordinates.longitude
   };
 
-  return (
+  return isLoaded ? (
     <div data-testid='map-with-coordinates' style={containerStyle}>
       <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
         <Marker position={center} />
       </GoogleMap>
     </div>
-  );
+  ) : null;
 }

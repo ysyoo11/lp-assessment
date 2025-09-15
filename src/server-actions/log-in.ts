@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { LoginState } from '@/components/auth/LoginForm';
 import { getUserByEmail } from '@/data/user';
+import { ensureUserIndexExists } from '@/lib/elastic';
 import { rateLimitByIp } from '@/lib/rate-limit';
 import { redisClient as redis } from '@/lib/redis';
 import { comparePasswords } from '@/utils/auth';
@@ -57,6 +58,8 @@ export async function logIn(
         }
       };
     }
+
+    await ensureUserIndexExists();
 
     const existingUser = await getUserByEmail(validation.data.email);
 

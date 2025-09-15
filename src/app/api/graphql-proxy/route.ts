@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VALIDATION_ERROR_MESSAGES } from '@/constants/validate-address';
 import { logVerificationAttempt } from '@/data/log';
 import { fetchAusPostData } from '@/lib/auspost';
+import { ensureLogIndexExists } from '@/lib/elastic';
 import { rateLimitByIp } from '@/lib/rate-limit';
 import { redisClient as redis } from '@/lib/redis';
 import { getCurrentUser } from '@/utils/current-user';
@@ -63,6 +64,8 @@ export async function POST(req: NextRequest) {
         status: 401
       });
     }
+
+    await ensureLogIndexExists();
 
     const { variables } = await req.json();
 

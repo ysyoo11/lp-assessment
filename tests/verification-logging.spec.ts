@@ -85,7 +85,7 @@ test.describe('Verification Logging to Elasticsearch', () => {
       await page.waitForTimeout(500);
       searchResponse = await esClient.search({
         index: ELASTICSEARCH_INDEXES.LOGS,
-        query: { term: { 'userId.keyword': mockUser.id } },
+        query: { term: { userId: mockUser.id } },
         sort: [{ timestamp: { order: 'desc' } }],
         size: 1
       });
@@ -132,7 +132,7 @@ test.describe('Verification Logging to Elasticsearch', () => {
       await page.waitForTimeout(500);
       searchResponse = await esClient.search({
         index: ELASTICSEARCH_INDEXES.LOGS,
-        query: { term: { 'userId.keyword': mockUser.id } },
+        query: { term: { userId: mockUser.id } },
         sort: [{ timestamp: { order: 'desc' } }],
         size: 1
       });
@@ -180,7 +180,7 @@ test.describe('Verification Logging to Elasticsearch', () => {
       index: ELASTICSEARCH_INDEXES.LOGS,
       query: {
         term: {
-          'userId.keyword': mockUser.id
+          userId: mockUser.id
         }
       },
       sort: [{ timestamp: { order: 'desc' } }],
@@ -217,7 +217,7 @@ test.describe('Verification Logging to Elasticsearch', () => {
         await esClient.deleteByQuery({
           index: ELASTICSEARCH_INDEXES.LOGS,
           query: {
-            term: { 'userId.keyword': mockUser.id }
+            term: { userId: mockUser.id }
           }
         });
       } catch (error) {

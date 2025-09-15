@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { useAddressValidation } from '@/hooks/use-address-validation';
+import { useAddressValidation, useFormPersistence } from '@/hooks';
 import { states } from '@/types/locality';
 import {
   ValidateAddressSchema,
@@ -26,6 +26,8 @@ import {
 } from '../ui';
 import ErrorMessage from '../ui/error-message';
 
+export const VERIFIER_FORM_KEY = '@lp-assessment-verifier-form-data';
+
 export default function VerifierForm() {
   const form = useForm<ValidateAddressSchema>({
     resolver: zodResolver(validateAddressSchema),
@@ -35,6 +37,9 @@ export default function VerifierForm() {
       state: 'NSW'
     }
   });
+
+  useFormPersistence(form, VERIFIER_FORM_KEY);
+
   const { validateAddress, loading, errorMessage, successMessage } =
     useAddressValidation();
 

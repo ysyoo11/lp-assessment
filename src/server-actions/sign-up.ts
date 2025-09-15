@@ -1,21 +1,27 @@
 'use server';
 
+import { Ratelimit } from '@upstash/ratelimit';
 import crypto from 'crypto';
 import { redirect } from 'next/navigation';
 
 import { SignupState } from '@/components/auth/SignupForm';
 import { createUser, getUserByEmail } from '@/data/user';
+import { rateLimitByIp } from '@/lib/rate-limit';
+import { redisClient as redis } from '@/lib/redis';
 import { hashPassword } from '@/utils/auth';
 import { getCurrentUser } from '@/utils/current-user';
 import { createUserSession } from '@/utils/session';
 import { validateSignup } from '@/validation/signup';
 
+const rateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1m')
+});
+
 export async function signUp(
   prevState: SignupState,
   formData: FormData
 ): Promise<SignupState> {
-  // TODO: rate limit
-
   const data: SignupState['data'] = {
     name: formData.get('name') as string,
     email: formData.get('email') as string,
@@ -34,6 +40,17 @@ export async function signUp(
   // TODO: Google ReCAPTCHA
 
   try {
+    const { success } = await rateLimitByIp(rateLimit);
+    if (!success) {
+      return {
+        data,
+        error: {
+          formErrors: ['Too many requests. Please try again later.'],
+          fieldErrors: {}
+        }
+      };
+    }
+
     const currentUser = await getCurrentUser();
     if (currentUser) {
       return {

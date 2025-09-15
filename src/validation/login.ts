@@ -10,6 +10,7 @@ export const loginSchema = z.object({
   email: z.email({ error: 'Invalid email address' }).trim().toLowerCase(),
   password: z
     .string({ error: 'Password is required' })
+    .trim()
     .min(PASSWORD_MIN_LENGTH, {
       error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`
     })

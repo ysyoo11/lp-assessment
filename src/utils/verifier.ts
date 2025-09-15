@@ -99,7 +99,7 @@ function findMatchedSuburb(
   return localities.find((locality) => {
     const localityName =
       'location' in locality ? locality.location : locality.suburb;
-    return localityName.toLowerCase() === suburb.toLowerCase();
+    return localityName.trim().toLowerCase() === suburb.trim().toLowerCase();
   });
 }
 
@@ -107,5 +107,5 @@ function isSuburbInState(
   suburb: Locality,
   state: ValidateAddressSchema['state']
 ): boolean {
-  return suburb.state.toLowerCase() === state.toLowerCase();
+  return suburb.state.trim().toLowerCase() === state.trim().toLowerCase();
 }

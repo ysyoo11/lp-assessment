@@ -21,6 +21,7 @@ export const signupSchema = z
     email: z.email({ error: 'Invalid email address' }).trim().toLowerCase(),
     password: z
       .string({ error: 'Password is required' })
+      .trim()
       .min(PASSWORD_MIN_LENGTH, {
         error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`
       })
@@ -31,7 +32,7 @@ export const signupSchema = z
       .max(PASSWORD_MAX_LENGTH, {
         error: `Password must be at most ${PASSWORD_MAX_LENGTH} characters long`
       }),
-    passwordConfirm: z.string({ error: 'Please confirm your password.' })
+    passwordConfirm: z.string({ error: 'Please confirm your password.' }).trim()
   })
   .refine((data) => data.password === data.passwordConfirm, {
     error: 'Passwords do not match.',

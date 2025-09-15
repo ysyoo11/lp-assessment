@@ -113,7 +113,7 @@ test.describe('Auth Errors', () => {
         index: ELASTICSEARCH_INDEXES.USERS,
         query: {
           term: {
-            'email.keyword': testUser.email
+            email: testUser.email
           }
         },
         conflicts: 'proceed'

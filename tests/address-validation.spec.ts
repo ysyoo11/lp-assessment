@@ -673,7 +673,7 @@ test.describe('Address Validation', () => {
         await esClient.deleteByQuery({
           index: ELASTICSEARCH_INDEXES.LOGS,
           query: {
-            term: { 'userId.keyword': mockUser.id }
+            term: { userId: mockUser.id }
           }
         });
       } catch (error) {

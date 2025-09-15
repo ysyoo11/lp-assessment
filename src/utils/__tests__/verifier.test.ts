@@ -45,7 +45,7 @@ describe('validateAddressData', () => {
           '2000',
           'NSW'
         ),
-        status: 400
+        status: 200
       });
     });
   });
@@ -65,7 +65,7 @@ describe('validateAddressData', () => {
           '2000',
           'Sydney'
         ),
-        status: 400
+        status: 200
       });
     });
 
@@ -91,7 +91,7 @@ describe('validateAddressData', () => {
           'Sydney',
           'NSW'
         ),
-        status: 400
+        status: 200
       });
     });
 

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import crypto from 'crypto';
 
+import { ELASTICSEARCH_INDEXES } from '@/constants/elasticsearch';
 import { esClient } from '@/lib/elastic';
 import { redisClient } from '@/lib/redis';
 import { NewUser } from '@/types/user';
@@ -32,7 +33,7 @@ test.describe('Log in', () => {
       const hashedPassword = await hashPassword(testUser.password);
 
       await esClient.index({
-        index: 'users',
+        index: ELASTICSEARCH_INDEXES.USERS,
         id: testUser.id,
         document: {
           ...testUser,
@@ -117,7 +118,7 @@ test.describe('Log in', () => {
     try {
       // Clean up test user from Elasticsearch
       await esClient.deleteByQuery({
-        index: 'users',
+        index: ELASTICSEARCH_INDEXES.USERS,
         query: {
           term: {
             'email.keyword': testUser.email

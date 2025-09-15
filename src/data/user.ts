@@ -1,13 +1,12 @@
 import 'server-only';
 
+import { ELASTICSEARCH_INDEXES } from '@/constants/elasticsearch';
 import { esClient } from '@/lib/elastic';
 import { NewUser, User } from '@/types/user';
 
-const USER_INDEX = 'users';
-
 export async function getUserByEmail(email: string): Promise<User | null> {
   const user = await esClient.search({
-    index: USER_INDEX,
+    index: ELASTICSEARCH_INDEXES.USERS,
     query: {
       term: {
         'email.keyword': email
@@ -24,7 +23,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function createUser(user: NewUser) {
   await esClient.index({
-    index: USER_INDEX,
+    index: ELASTICSEARCH_INDEXES.USERS,
     id: user.id,
     document: {
       ...user,

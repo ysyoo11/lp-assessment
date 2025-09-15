@@ -13,10 +13,15 @@ export function useFormPersistence<T extends Record<string, any>>(
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      const data = JSON.parse(saved) as T;
-      Object.keys(data).forEach((key) => {
-        form.setValue(key as Path<T>, data[key]);
-      });
+      try {
+        const data = JSON.parse(saved) as T;
+        Object.keys(data).forEach((key) => {
+          form.setValue(key as Path<T>, data[key]);
+        });
+      } catch (error) {
+        console.error('Failed to parse saved form data:', error);
+        localStorage.removeItem(storageKey);
+      }
     }
   }, [form, storageKey]);
 

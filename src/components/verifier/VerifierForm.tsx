@@ -150,7 +150,7 @@ export default function VerifierForm() {
             disabled={isButtonDisabled}
             data-testid='verify-button'
           >
-            Verify
+            {loading ? 'Verifying...' : 'Verify'}
           </Button>
         </div>
       </form>

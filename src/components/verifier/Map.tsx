@@ -9,7 +9,10 @@ export default function Map() {
 
   if (successMessage && coordinates === null) {
     return (
-      <div className='flex h-[300px] w-full items-center justify-center rounded-lg border p-4 text-sm'>
+      <div
+        className='flex h-[300px] w-full items-center justify-center rounded-lg border p-4 text-sm'
+        data-testid='map-no-coordinates'
+      >
         <p className='text-center'>No coordinates found for this address 🫥</p>
       </div>
     );
@@ -17,15 +20,20 @@ export default function Map() {
 
   if (coordinates === null) return null;
 
-  const containerStyle = { width: '100%', height: '300px' };
+  const containerStyle = {
+    width: '100%',
+    height: '300px'
+  };
   const center = {
     lat: coordinates.latitude,
     lng: coordinates.longitude
   };
 
   return (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
-      <Marker position={center} />
-    </GoogleMap>
+    <div data-testid='map-with-coordinates' style={containerStyle}>
+      <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
+        <Marker position={center} />
+      </GoogleMap>
+    </div>
   );
 }

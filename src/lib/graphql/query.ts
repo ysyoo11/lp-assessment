@@ -5,6 +5,8 @@ export const VALIDATE_ADDRESS = gql`
     validateAddress(postcode: $postcode, suburb: $suburb, state: $state) {
       success
       message
+      latitude
+      longitude
     }
   }
 `;

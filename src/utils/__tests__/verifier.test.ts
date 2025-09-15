@@ -125,6 +125,8 @@ describe('validateAddressData', () => {
       expect(result).toEqual<ValidationResult>({
         success: true,
         message: VALIDATION_SUCCESS_MESSAGE,
+        latitude: -33.8688,
+        longitude: 151.2093,
         status: 200
       });
     });

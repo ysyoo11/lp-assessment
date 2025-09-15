@@ -11,6 +11,8 @@ import {
 export type ValidationResult = {
   success: boolean;
   message: string;
+  latitude?: Locality['latitude'];
+  longitude?: Locality['longitude'];
   status: number;
 };
 
@@ -62,6 +64,8 @@ export function validateAddressData(
   return {
     success: true,
     message: VALIDATION_SUCCESS_MESSAGE,
+    latitude: matchedSuburb.latitude,
+    longitude: matchedSuburb.longitude,
     status: 200
   };
 }

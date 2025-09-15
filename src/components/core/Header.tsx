@@ -1,13 +1,13 @@
 'use client';
 
+import { STORAGE_KEYS } from '@/constants/storage';
 import { logOut } from '@/server-actions/log-out';
 
 import Logo from '../svg/Logo';
-import { VERIFIER_FORM_KEY } from '../verifier/VerifierForm';
 
 export default function Header() {
   const clearFormData = () => {
-    localStorage.removeItem(VERIFIER_FORM_KEY);
+    localStorage.removeItem(STORAGE_KEYS.VERIFIER_FORM_DATA);
   };
 
   return (

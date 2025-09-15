@@ -3,7 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { useAddressValidation } from '@/hooks/use-address-validation';
+import { STORAGE_KEYS } from '@/constants/storage';
+import { useAddressValidation, useFormPersistence } from '@/hooks';
 import { states } from '@/types/locality';
 import {
   ValidateAddressSchema,
@@ -35,6 +36,9 @@ export default function VerifierForm() {
       state: 'NSW'
     }
   });
+
+  useFormPersistence(form, STORAGE_KEYS.VERIFIER_FORM_DATA);
+
   const { validateAddress, loading, errorMessage, successMessage } =
     useAddressValidation();
 

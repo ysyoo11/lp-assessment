@@ -15,7 +15,11 @@ export function useFormPersistence<
       try {
         const data = JSON.parse(saved) as T;
         Object.keys(data).forEach((key) => {
-          form.setValue(key as Path<T>, data[key]);
+          form.setValue(key as Path<T>, data[key], {
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
+          });
         });
       } catch (error) {
         console.error('Failed to parse saved form data:', error);

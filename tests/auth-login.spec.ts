@@ -83,7 +83,7 @@ test.describe('Log in', () => {
         index: ELASTICSEARCH_INDEXES.USERS,
         query: {
           term: {
-            email: testUser.email
+            'email.keyword': testUser.email
           }
         },
         conflicts: 'proceed'

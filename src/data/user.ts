@@ -8,7 +8,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   const user = await esClient.search({
     index: ELASTICSEARCH_INDEXES.USERS,
     query: {
-      term: { email }
+      term: { 'email.keyword': email }
     }
   });
 

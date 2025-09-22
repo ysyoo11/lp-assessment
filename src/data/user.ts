@@ -8,7 +8,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   const user = await esClient.search({
     index: ELASTICSEARCH_INDEXES.USERS,
     query: {
-      term: { 'email.keyword': email }
+      term: { email }
     }
   });
 
@@ -26,6 +26,7 @@ export async function createUser(user: NewUser) {
     document: {
       ...user,
       createdAt: new Date().toISOString()
-    }
+    },
+    refresh: 'wait_for'
   });
 }
